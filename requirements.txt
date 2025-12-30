@@ -1,0 +1,12 @@
+flask==3.0.0
+flask-cors==4.0.0
+websockets==12.0
+python-dotenv==1.0.0
+pymongo==4.6.1
+dnspython==2.4.2
+google-generativeai==0.8.3
+easyocr==1.7.1
+googletrans==4.0.0rc1
+Pillow==10.1.0
+numpy==1.26.2
+gunicorn==21.2.0
