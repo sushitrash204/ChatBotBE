@@ -161,11 +161,10 @@ class VoiceChatService:
                 final_turns = jailbreak_turns + turns
                 
                 # 4. Gửi toàn bộ nội dung
-                # SIMPLIFIED: Gửi trực tiếp User Message để test Native-Audio Model (Tạm bỏ Jailbreak cũ)
                 prompt_input = {
                     "client_content": {
                         "turn_complete": True,
-                        "turns": [{"role": "user", "parts": [{"text": message}]}]
+                        "turns": final_turns
                     }
                 }
                 
