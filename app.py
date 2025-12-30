@@ -306,12 +306,17 @@ def chat_voice_api():
     voice = data.get('voice', 'Charon')
     language = data.get('language', 'vi') # Default Vietnamese
     history = data.get('history', [])
+    audio_input = data.get('audio', None)
+    mime_type = data.get('mime_type', 'audio/wav') # Default to WAV
+
+    if audio_input:
+        print(f"🎤 App: Received Audio Input: {len(audio_input)} chars (Base64)")
     
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         result = loop.run_until_complete(
-            voice_service.chat_with_voice(message, voice, history, language)
+            voice_service.chat_with_voice(message, voice, history, language, audio_input, mime_type)
         )
         loop.close()
         
