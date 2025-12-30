@@ -19,8 +19,8 @@ class TextChatService:
         self.api_key = api_key
         # Khởi tạo kết nối DB
         self.db_manager = DatabaseManager()
-        # Khởi tạo EasyOCR Lazy Loading
-        self._ocr_reader = None 
+        # Khởi tạo kết nối DB
+        self.db_manager = DatabaseManager()
         # Translation service ready
         print("✅ Text Service initialized (OCR will be loaded on demand)")
         
@@ -100,38 +100,9 @@ class TextChatService:
 
     def extract_text_from_image(self, image_data: bytes, mime_type: str = "image/jpeg") -> str:
         """
-        Extract text from image using EasyOCR (Offline).
-        Supports Vietnamese and English.
-        Lazy Loading: Chỉ khởi tạo mô hình khi thực sự cần.
+        API OCR removed. Use Client-Side OCR.
         """
-        try:
-            # Lazy Loading check
-            if self._ocr_reader is None:
-                print("🔄 Loading heavy AI libraries (EasyOCR, Torch, Numpy)...")
-                import easyocr
-                import numpy as np
-                print("🔄 Initializing models...")
-                self._ocr_reader = easyocr.Reader(['vi', 'en'], gpu=False)
-                print("✅ EasyOCR loaded!")
-
-            # Convert bytes to PIL Image
-            from PIL import Image
-            image = Image.open(io.BytesIO(image_data))
-            
-            # Convert PIL Image to numpy array (EasyOCR requirement)
-            import numpy as np
-            image_np = np.array(image)
-            
-            # Use EasyOCR to extract text
-            results = self._ocr_reader.readtext(image_np)
-            
-            # Combine all detected text
-            extracted_text = "\n".join([text[1] for text in results])
-            
-            return extracted_text.strip() if extracted_text else "No text detected"
-        except Exception as e:
-            print(f"❌ EasyOCR Error: {e}")
-            return f"Error: {str(e)}"
+        return "OCR is now processed on client side."
 
     def translate_text(self, text: str, source_lang: str, target_lang: str) -> str:
         """
