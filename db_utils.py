@@ -53,10 +53,9 @@ class DatabaseManager:
             return
 
         try:
-            self.client = MongoClient(MONGODB_URI, server_api=ServerApi('1'))
-            # Send a ping to confirm a successful connection
-            self.client.admin.command('ping')
-            print("✅ Successfully connected to MongoDB!")
+            # Connect without blocking ping
+            self.client = MongoClient(MONGODB_URI, server_api=ServerApi('1'), serverSelectionTimeoutMS=5000)
+            print("🔄 MongoDB client initialized (connection will be verified on first request)")
             self.db = self.client['gemini_chat_db']
         except Exception as e:
             print(f"❌ MongoDB connection failed: {e}")
