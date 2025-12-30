@@ -15,6 +15,8 @@ import os
 import secrets
 import struct
 import threading
+import sys
+print(f"🚀 Starting App with Python version: {sys.version}")
 from flask import Flask, render_template, request, jsonify, Response, session, redirect, url_for, flash
 from flask_cors import CORS
 from dotenv import load_dotenv
