@@ -139,8 +139,20 @@ class VoiceChatService:
                     print("🛑 Setup Timeout: Gemini did not respond to setup message.", flush=True)
                     raise Exception("Gemini Setup Timeout")
                 
-                # 2. Tin nhắn hội thoại
+                # 2. Xây dựng hội thoại (History + Current)
                 turns = []
+                
+                # Thêm lịch sử (nếu có)
+                if conversation_history:
+                    for msg in conversation_history:
+                        role = "user" if msg.get('role') == 'user' else "model"
+                        content = msg.get('text') or msg.get('content') or ""
+                        
+                        if content:
+                            turns.append({
+                                "role": role,
+                                "parts": [{"text": content}]
+                            })
                 
                 # 3. Thêm tin nhắn hiện tại (Hỗ trợ cả MESSAGE TEXT và AUDIO)
                 current_parts = []
