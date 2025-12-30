@@ -39,7 +39,7 @@ class VoiceChatService:
                     "setup": {
                         "model": f"models/{self.model}",
                         "generation_config": {
-                            "response_modalities": ["AUDIO"], # Chỉ nhận Audio
+                            "response_modalities": ["AUDIO", "TEXT"], # Nhận cả Audio và Text
                             "speech_config": {
                                 "voice_config": {
                                     "prebuilt_voice_config": {
@@ -109,7 +109,7 @@ class VoiceChatService:
                     "setup": {
                         "model": f"models/{self.model}",
                         "generation_config": {
-                            "response_modalities": ["AUDIO"],
+                            "response_modalities": ["AUDIO", "TEXT"],
                             "speech_config": {
                                 "voice_config": {
                                     "prebuilt_voice_config": {"voice_name": voice}
