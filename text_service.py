@@ -11,10 +11,7 @@ Chức năng chính:
 
 import google.generativeai as genai
 from db_utils import DatabaseManager
-import easyocr
 import io
-from PIL import Image
-import numpy as np
 from deep_translator import GoogleTranslator
 
 class TextChatService:
@@ -22,12 +19,10 @@ class TextChatService:
         self.api_key = api_key
         # Khởi tạo kết nối DB
         self.db_manager = DatabaseManager()
-        # Khởi tạo EasyOCR (Vietnamese + English)
-        print("🔄 Initializing EasyOCR (vi, en)...")
-        self.ocr_reader = easyocr.Reader(['vi', 'en'], gpu=False)
-        print("✅ EasyOCR ready!")
+        # Khởi tạo EasyOCR Lazy Loading
+        self._ocr_reader = None 
         # Translation service ready
-        print("✅ Translation service ready!")
+        print("✅ Text Service initialized (OCR will be loaded on demand)")
         
     def chat_text_only(self, message: str, conversation_history: list = None, system_prompt: str = None, conversation_id: str = None) -> str:
         """
@@ -107,16 +102,28 @@ class TextChatService:
         """
         Extract text from image using EasyOCR (Offline).
         Supports Vietnamese and English.
+        Lazy Loading: Chỉ khởi tạo mô hình khi thực sự cần.
         """
         try:
+            # Lazy Loading check
+            if self._ocr_reader is None:
+                print("🔄 Loading heavy AI libraries (EasyOCR, Torch, Numpy)...")
+                import easyocr
+                import numpy as np
+                print("🔄 Initializing models...")
+                self._ocr_reader = easyocr.Reader(['vi', 'en'], gpu=False)
+                print("✅ EasyOCR loaded!")
+
             # Convert bytes to PIL Image
+            from PIL import Image
             image = Image.open(io.BytesIO(image_data))
             
             # Convert PIL Image to numpy array (EasyOCR requirement)
+            import numpy as np
             image_np = np.array(image)
             
             # Use EasyOCR to extract text
-            results = self.ocr_reader.readtext(image_np)
+            results = self._ocr_reader.readtext(image_np)
             
             # Combine all detected text
             extracted_text = "\n".join([text[1] for text in results])
