@@ -16,7 +16,7 @@ import secrets
 import struct
 import threading
 import sys
-print(f"🚀 Starting App with Python version: {sys.version}")
+print(f"� Starting App with Python version: {sys.version}")
 from flask import Flask, render_template, request, jsonify, Response, session, redirect, url_for, flash
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -151,6 +151,7 @@ def chat_text(conversation_id=None):
 
 @app.route('/api/conversations', methods=['GET'])
 def get_conversations():
+    print("🔔 [API] Hit /api/conversations (GET)", flush=True)
     # Support both session cookie and Authorization header
     user_id = None
     
@@ -204,6 +205,7 @@ def delete_conversation(conversation_id):
 
 @app.route('/api/history', methods=['GET'])
 def get_chat_history():
+    print("🔔 [API] Hit /api/history (GET)", flush=True)
     # Support both session cookie and Authorization header
     user_id = None
     
@@ -241,6 +243,7 @@ def get_chat_history():
 
 @app.route('/api/chat-text', methods=['POST'])
 def chat_text_api():
+    print("🔔 [API] Hit /api/chat-text (POST)", flush=True)
     # Allow usage without login (just won't save history)
     
     if not text_service:
@@ -294,9 +297,11 @@ def add_wav_header(pcm_data, sample_rate=24000, channels=1, bits_per_sample=16):
     )
     return header + pcm_data
 
-@app.route('/api/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST', 'OPTIONS'])
 def chat_voice_api():
-    # Allow usage without login
+    print(f"\n🔔 [API] Hit /api/chat - Method: {request.method}", flush=True)
+    if request.method == 'OPTIONS':
+        return jsonify({"success": True}), 200
         
     if not voice_service:
         return jsonify({"error": "Service not initialized"}), 500
@@ -387,6 +392,8 @@ if __name__ == '__main__':
     # ssl_context='adhoc' để enable HTTPS (tự tạo cert) -> Giúp micro hoạt động trên LAN
     # Tuy nhiên adhoc cần cài thêm thư viện (pyopenssl), nếu chưa có thì chạy HTTP thường
     try:
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        # Tắt reloader hoàn toàn để tránh lỗi select.select trên Windows
+        # debug=True vẫn giữ lại debugger nhưng use_reloader=False ngăn chặn việc spawn tiến trình con
+        app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False, threaded=True)
     except Exception as e:
         print(f"Server error: {e}")
