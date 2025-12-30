@@ -15,7 +15,7 @@ import easyocr
 import io
 from PIL import Image
 import numpy as np
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 
 class TextChatService:
     def __init__(self, api_key: str):
@@ -26,9 +26,8 @@ class TextChatService:
         print("🔄 Initializing EasyOCR (vi, en)...")
         self.ocr_reader = easyocr.Reader(['vi', 'en'], gpu=False)
         print("✅ EasyOCR ready!")
-        # Khởi tạo Google Translator
-        self.translator = Translator()
-        print("✅ Google Translate ready!")
+        # Translation service ready
+        print("✅ Translation service ready!")
         
     def chat_text_only(self, message: str, conversation_history: list = None, system_prompt: str = None, conversation_id: str = None) -> str:
         """
@@ -133,11 +132,11 @@ class TextChatService:
         Fallback to Gemma if Google Translate fails.
         """
         try:
-            # Use Google Translate (much faster than Gemma)
-            result = self.translator.translate(text, src=source_lang if source_lang != 'auto' else 'auto', dest=target_lang)
-            return result.text
+            # Use deep-translator (much more stable and works on Python 3.13)
+            translated = GoogleTranslator(source=source_lang if source_lang != 'auto' else 'auto', target=target_lang).translate(text)
+            return translated
         except Exception as e:
-            print(f"❌ Google Translate Error: {e}, falling back to Gemma...")
+            print(f"❌ Translation Error: {e}, falling back to Gemma...")
             # Fallback to Gemma
             try:
                 genai.configure(api_key=self.api_key)
