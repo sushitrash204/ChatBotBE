@@ -1,0 +1,7 @@
+flask
+websockets
+python-dotenv
+pymongo
+dnspython
+google-generativeai
+easyocr

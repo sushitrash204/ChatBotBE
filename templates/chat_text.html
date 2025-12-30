@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot AI - Text Mode</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1b1e;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Header --- */
+        .chat-header {
+            background: rgba(45, 47, 51, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            z-index: 200;
+        }
+
+        .header-left h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .badge-btn {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .badge-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* --- History Drawer (Hidden Left) --- */
+        .history-drawer {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: #202123;
+            color: white;
+            z-index: 100;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-drawer.open {
+            left: 0;
+        }
+
+        .drawer-header {
+            padding: 20px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-drawer {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .new-chat-btn {
+            margin: 15px;
+            padding: 12px;
+            background: #343541;
+            border: 1px solid #565869;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .new-chat-btn:hover {
+            background: #40414f;
+        }
+
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 10px;
+        }
+
+        .convo-item {
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #eee;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            overflow: hidden;
+            transition: background 0.2s;
+        }
+
+        .convo-item:hover {
+            background: #2A2B32;
+        }
+
+        .convo-item.active {
+            background: #343541;
+        }
+
+        .convo-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .convo-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .convo-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            color: #ff6b6b;
+            transform: scale(1.2);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* --- Chat Area --- */
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #1a1b1e;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message.model {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.user .msg-bubble {
+            background: #2d2f33;
+            color: white;
+            border-top-right-radius: 2px;
+        }
+
+        .message.model .msg-bubble {
+            background: #343541;
+            color: #eee;
+            border-top-left-radius: 2px;
+        }
+
+        /* --- Footer --- */
+        .chat-footer {
+            padding: 20px;
+            background: #202123;
+            border-top: 1px solid #333;
+        }
+
+        .input-group {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px 55px 15px 20px;
+            border: 2px solid #444;
+            border-radius: 25px;
+            outline: none;
+            resize: none;
+            height: 54px;
+            font-family: inherit;
+            font-size: 15px;
+            background: #2d2f33;
+            color: white;
+        }
+
+        textarea:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Personality Toggle */
+        .personality-box {
+            display: none;
+            position: absolute;
+            bottom: 70px;
+            left: 0;
+            width: 100%;
+            background: #2d2f33;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid #444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- OVERLAY & DRAWER -->
+    <div class="overlay" onclick="toggleHistory()"></div>
+    <div class="history-drawer" id="historyDrawer">
+        <div class="drawer-header">
+            <h3>Lịch sử</h3>
+            <button class="close-drawer" onclick="toggleHistory()">&times;</button>
+        </div>
+        <div class="new-chat-btn" onclick="startNewChat()">
+            <i class="fas fa-plus"></i> Cuộc hội thoại mới
+        </div>
+        <div class="conversation-list" id="conversationList">
+            <!-- JS load items -->
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="chat-header">
+        <div class="header-left">
+            <h1>💬 Lamp Text</h1>
+        </div>
+        <div class="header-right">
+            {% if username %}
+            <button class="icon-btn" onclick="toggleHistory()" title="Lịch sử">
+                <i class="fas fa-history"></i>
+            </button>
+            {% endif %}
+            <button class="icon-btn" onclick="togglePersonality()" title="Cài đặt AI">
+                <i class="fas fa-cog"></i>
+            </button>
+
+            <!-- Translate Button -->
+            <button class="icon-btn" onclick="window.location.href='/translate'" title="Dịch thuật">
+                <i class="fas fa-language"></i>
+            </button>
+
+            <!-- Nút Voice Chat (Đã sửa thành Button JS) -->
+            <button class="icon-btn" onclick="window.location.href='/chat'" title="Chuyển sang Voice Chat">
+                <i class="fas fa-microphone"></i>
+            </button>
+
+            {% if username %}
+            <a href="/logout" class="icon-btn logout" title="Đăng xuất">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+            {% else %}
+            <a href="/login" class="badge-btn" title="Đăng nhập" style="text-decoration:none;">
+                Đăng nhập
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MAIN CHAT -->
+    <input type="hidden" id="currentConversationId" value="{{ conversation_id if conversation_id else '' }}">
+
+    <div class="messages-container" id="messagesContainer">
+        {% if not conversation_id %}
+        <div style="text-align: center; margin-top: 50px; color: #888;">
+            <i class="fas fa-comments" style="font-size: 50px; margin-bottom: 20px; opacity: 0.5;"></i>
+            <h3>Bắt đầu cuộc trò chuyện mới</h3>
+            <p>Nội dung chat của bạn sẽ được lưu tự động.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- FOOTER -->
+    <div class="chat-footer">
+        <div class="input-group">
+            <div class="personality-box" id="personalityBox">
+                <input type="text" id="systemPrompt" placeholder="Nhập tính cách AI (VD: Hài hước, Lạnh lùng...)"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+
+            <textarea id="messageInput" placeholder="Nhập tin nhắn..." rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // DOM Elements
+        const messageInput = document.getElementById('messageInput');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const sendBtn = document.getElementById('sendBtn');
+        let currentConversationId = document.getElementById('currentConversationId').value;
+        let conversationHistory = [];
+
+        function toggleHistory() {
+            document.getElementById('historyDrawer').classList.toggle('open');
+            document.querySelector('.overlay').classList.toggle('active');
+        }
+
+        function togglePersonality() {
+            const box = document.getElementById('personalityBox');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // --- Chat Logic ---
+        marked.setOptions({ breaks: true, gfm: true });
+
+        async function loadConversations() {
+            try {
+                const res = await fetch('/api/conversations');
+                const data = await res.json();
+                const list = document.getElementById('conversationList');
+                list.innerHTML = '';
+
+                if (data.conversations) {
+                    data.conversations.forEach(conv => {
+                        const div = document.createElement('div');
+                        div.className = `convo-item ${conv.id == currentConversationId ? 'active' : ''}`;
+                        div.onclick = (e) => {
+                            if (e.target.closest('.delete-btn')) return;
+                            window.location.href = `/chat-text/${conv.id}`;
+                        };
+
+                        div.innerHTML = `
+                            <div class="convo-content">
+                                <i class="far fa-comment-alt"></i> 
+                                <span class="convo-title">${conv.title}</span>
+                            </div>
+                            <button class="delete-btn" onclick="deleteConversation('${conv.id}', event)" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                        list.appendChild(div);
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function deleteConversation(id, event) {
+            event.stopPropagation();
+            if (!confirm("Bạn có chắc muốn xóa cuộc hội thoại này?")) return;
+
+            try {
+                const res = await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (data.success) {
+                    loadConversations();
+                    if (id === currentConversationId) {
+                        window.location.href = '/chat-text';
+                    }
+                } else {
+                    alert("Không thể xóa");
+                }
+            } catch (e) { alert("Lỗi kết nối"); }
+        }
+
+        async function startNewChat() {
+            try {
+                const res = await fetch('/api/conversations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Chat mới' })
+                });
+                const data = await res.json();
+                if (data.success) window.location.href = `/chat-text/${data.conversation_id}`;
+            } catch (e) { alert("Lỗi tạo chat"); }
+        }
+
+        async function loadMessages() {
+            if (!currentConversationId) return;
+            try {
+                const res = await fetch(`/api/history?conversation_id=${currentConversationId}`);
+                const data = await res.json();
+                if (data.history) {
+                    messagesContainer.innerHTML = '';
+                    data.history.forEach(msg => {
+                        appendMessage(msg.role, msg.content);
+                        conversationHistory.push({
+                            role: msg.role === 'user' ? 'user' : 'model',
+                            parts: [{ text: msg.content }]
+                        });
+                    });
+                    scrollToBottom();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function appendMessage(role, text) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            const html = role === 'model' ? marked.parse(text) : text.replace(/\n/g, '<br>');
+            div.innerHTML = `<div class="msg-bubble">${html}</div>`;
+            messagesContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() { messagesContainer.scrollTop = messagesContainer.scrollHeight; }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            // UI Optimistic Update
+            appendMessage('user', text);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            const sysPrompt = document.getElementById('systemPrompt').value;
+
+            // Check if New Chat
+            if (!currentConversationId) {
+                try {
+                    // Create new conversation first
+                    const res = await fetch('/api/conversations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: text.substring(0, 30) || 'Chat mới' })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        currentConversationId = data.conversation_id;
+                        // Update URL without reload
+                        history.pushState({}, '', `/chat-text/${currentConversationId}`);
+                        // Refresh sidebar
+                        loadConversations();
+                    } else {
+                        throw new Error("Could not create conversation");
+                    }
+                } catch (e) {
+                    appendMessage('model', "Lỗi tạo hội thoại mới: " + e.message);
+                    sendBtn.disabled = false;
+                    return;
+                }
+            }
+
+            try {
+                const res = await fetch('/api/chat-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: text,
+                        conversation_id: currentConversationId,
+                        system_prompt: sysPrompt,
+                        history: conversationHistory
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    appendMessage('model', data.text);
+                    conversationHistory.push({ role: 'user', parts: [{ text: text }] });
+                    conversationHistory.push({ role: 'model', parts: [{ text: data.text }] });
+                } else {
+                    appendMessage('model', "Lỗi: " + data.error);
+                }
+            } catch (e) {
+                appendMessage('model', "Lỗi kết nối server.");
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        window.onload = () => {
+            loadConversations();
+            loadMessages();
+        };
+
+    </script>
+</body>
+
+</html>

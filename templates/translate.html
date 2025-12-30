@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot AI - Translate</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1b1e;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        .header {
+            padding: 15px 20px;
+            background: rgba(45, 47, 51, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        .home-btn {
+            background: #343541;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .badge-btn {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+            color: white;
+        }
+
+        .badge-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background: #202123;
+            padding: 10px;
+            gap: 20px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        /* --- Main Content --- */
+        .main-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            overflow-y: auto;
+        }
+
+        /* --- Text Mode --- */
+        .translation-box {
+            background: #2d2f33;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .lang-select {
+            background: #2d2f33;
+            color: white;
+            border: 1px solid #444;
+            padding: 5px;
+            border-radius: 5px;
+            width: 150px;
+        }
+
+        .lang-select option {
+            background: #2d2f33;
+            color: white;
+        }
+
+        textarea {
+            background: transparent;
+            border: none;
+            color: #eee;
+            font-size: 18px;
+            resize: none;
+            outline: none;
+            flex: 1;
+            min-height: 150px;
+        }
+
+        .translate-action-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            align-self: center;
+            width: 200px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .translate-action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- Image Mode --- */
+        .image-upload-area {
+            border: 2px dashed #444;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 5px;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .upload-label {
+            color: #888;
+        }
+
+        .mode-section {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .mode-section.active {
+            display: flex;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 999;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #667eea;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🌐 Lamp Translate</h1>
+        <div style="display:flex; gap:10px;">
+            <button class="icon-btn" onclick="window.location.href='/chat-text'" title="Text Chat">
+                <i class="fas fa-comment"></i>
+            </button>
+            <button class="icon-btn" onclick="window.location.href='/chat'" title="Voice Chat">
+                <i class="fas fa-microphone"></i>
+            </button>
+            {% if username %}
+            <a href="/logout" class="icon-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+            {% else %}
+            <a href="/login" class="badge-btn" title="Đăng nhập" style="text-decoration:none;">
+                Đăng nhập
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('text')"><i class="fas fa-font"></i> Văn bản</button>
+        <button class="tab-btn" onclick="switchTab('image')"><i class="fas fa-image"></i> Hình ảnh / Camera</button>
+    </div>
+
+    <div class="main-container">
+
+        <!-- TEXT MODE -->
+        <div id="textMode" class="mode-section active">
+            <div class="translation-box">
+                <div
+                    style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">
+                    <select id="textSrcLang" class="lang-select" onchange="translateText()">
+                        <option value="auto">Tự động phát hiện</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="en">Tiếng Anh</option>
+                        <option value="ja">Tiếng Nhật</option>
+                        <option value="ko">Tiếng Hàn</option>
+                        <option value="zh">Tiếng Trung</option>
+                    </select>
+                    <span style="color:#888"><i class="fas fa-arrow-right"></i></span>
+                    <select id="textTgtLang" class="lang-select" onchange="translateText()">
+                        <option value="vi" selected>Tiếng Việt</option>
+                        <option value="en">Tiếng Anh</option>
+                        <option value="ja">Tiếng Nhật</option>
+                        <option value="ko">Tiếng Hàn</option>
+                        <option value="zh">Tiếng Trung</option>
+                    </select>
+                </div>
+                <textarea id="textSource" placeholder="Nhập văn bản cần dịch..." oninput="translateText()"></textarea>
+            </div>
+
+            <div class="translation-box" style="background:#202123">
+                <h3 style="color:#888; font-size:14px; margin-bottom:5px;">Kết quả:</h3>
+                <textarea id="textTarget" readonly placeholder="Bản dịch sẽ hiện ở đây..."></textarea>
+            </div>
+        </div>
+
+        <!-- IMAGE MODE -->
+        <div id="imageMode" class="mode-section">
+
+            <!-- Step 1: Upload -->
+            <div class="image-upload-area" onclick="document.getElementById('fileInput').click()">
+                <img id="previewImage" />
+                <div class="upload-label" id="uploadLabel">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:40px; margin-bottom:10px;"></i>
+                    <p>Nhấn để tải ảnh hoặc chụp ảnh</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" capture="environment" hidden
+                    onchange="handleFileSelect(event)">
+            </div>
+
+            <div id="ocrControls" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
+                <div
+                    style="background:#555; color:white; padding:5px 10px; border-radius:5px; font-size:12px; text-align:center;">
+                    <i class="fas fa-info-circle"></i> Hệ thống đã quét chữ từ ảnh. Bạn hãy kiểm tra và sửa nếu cần
+                    trước khi dịch.
+                </div>
+
+                <div class="translation-box">
+                    <label style="color:#aaa; font-size:12px;">Văn bản trong ảnh (OCR):</label>
+                    <textarea id="imageOcrText"></textarea> <!-- Editable OCR Result -->
+                </div>
+
+                <div style="display:flex; justify-content:center; gap:10px; align-items:center;">
+                    <select id="imgTgtLang" class="lang-select" onchange="translateImageText()">
+                        <option value="vi" selected>Dịch sang Tiếng Việt</option>
+                        <option value="en">Dịch sang Tiếng Anh</option>
+                    </select>
+                </div>
+
+                <div class="translation-box" style="background:#202123">
+                    <label style="color:#aaa; font-size:12px;">Kết quả dịch:</label>
+                    <textarea id="imageTarget" readonly placeholder="..."></textarea>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Đang xử lý...</div>
+    </div>
+
+    <script>
+        function switchTab(mode) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.mode-section').forEach(s => s.classList.remove('active'));
+
+            event.target.closest('.tab-btn').classList.add('active');
+            document.getElementById(mode + 'Mode').classList.add('active');
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // --- Text Translation ---
+        async function translateText() {
+            const text = document.getElementById('textSource').value.trim();
+            if (!text) return;
+
+            const src = document.getElementById('textSrcLang').value;
+            const tgt = document.getElementById('textTgtLang').value;
+
+            showLoading("Đang dịch...");
+            try {
+                const res = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, source: src, target: tgt })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('textTarget').value = data.text;
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) { alert('Lỗi kết nối'); }
+            hideLoading();
+        }
+
+        // --- Image OCR & Translate ---
+        async function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('previewImage').style.display = 'block';
+                document.getElementById('uploadLabel').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+
+            // Step 1: Upload & OCR
+            showLoading("Đang quét chữ từ ảnh (OCR)...");
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const res = await fetch('/api/ocr', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('imageOcrText').value = data.text;
+                    document.getElementById('ocrControls').style.display = 'flex';
+                    // AUTO-TRANSLATE immediately after OCR
+                    hideLoading();
+                    await translateImageText();
+                } else {
+                    hideLoading();
+                    alert('Không tìm thấy chữ trong ảnh hoặc lỗi: ' + data.error);
+                }
+            } catch (e) {
+                hideLoading();
+                alert('Lỗi kết nối OCR');
+            }
+        }
+
+        async function translateImageText() {
+            const text = document.getElementById('imageOcrText').value.trim();
+            if (!text) return alert("Không có nội dung để dịch");
+
+            const tgt = document.getElementById('imgTgtLang').value;
+
+            showLoading("Đang dịch văn bản...");
+            try {
+                const res = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, source: 'auto', target: tgt })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('imageTarget').value = data.text;
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) { alert('Lỗi kết nối'); }
+            hideLoading();
+        }
+    </script>
+
+</body>
+
+</html>
