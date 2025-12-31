@@ -144,11 +144,19 @@ class VoiceChatService:
                 
                 # Thêm lịch sử (nếu có)
                 if conversation_history:
-                    for msg in conversation_history:
+                    print(f"📚 Found {len(conversation_history)} messages in history", flush=True)
+                    for i, msg in enumerate(conversation_history):
                         role = "user" if msg.get('role') == 'user' else "model"
-                        content = msg.get('text') or msg.get('content') or ""
+                        
+                        # Hỗ trợ cả cấu trúc Gemini (parts) và cấu trúc phẳng (text/content)
+                        content = ""
+                        if 'parts' in msg and isinstance(msg['parts'], list) and len(msg['parts']) > 0:
+                            content = msg['parts'][0].get('text', '')
+                        else:
+                            content = msg.get('text') or msg.get('content') or ""
                         
                         if content:
+                            print(f"  - Turn {i}: [{role}] {content[:50]}...", flush=True)
                             turns.append({
                                 "role": role,
                                 "parts": [{"text": content}]
@@ -192,6 +200,9 @@ class VoiceChatService:
                     "role": "user",
                     "parts": current_parts
                 })
+
+                if len(turns) > 1:
+                    print(f"🔄 Total turns being sent: {len(turns)}", flush=True)
 
                 # --- FINAL TURNS ---
                 final_turns = turns

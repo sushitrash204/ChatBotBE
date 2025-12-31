@@ -276,3 +276,30 @@ class DatabaseManager:
         if user and check_password_hash(user['password'], password):
             return str(user['_id']) # Return User ID as string
         return None
+
+    def change_password(self, user_id, old_password, new_password):
+        """Change user password after verifying the old one"""
+        if self.db is None:
+            return False, "Database connection error"
+            
+        try:
+            users_col = self.db['users']
+            user = users_col.find_one({"_id": ObjectId(user_id)})
+            
+            if not user:
+                return False, "User not found"
+                
+            # Verify old password
+            if not check_password_hash(user['password'], old_password):
+                return False, "Mật khẩu cũ không chính xác"
+                
+            # Update to new password
+            new_password_hash = generate_password_hash(new_password)
+            users_col.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {"password": new_password_hash}}
+            )
+            return True, "Đổi mật khẩu thành công"
+        except Exception as e:
+            print(f"❌ Error changing password: {e}")
+            return False, str(e)

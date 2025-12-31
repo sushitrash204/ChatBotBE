@@ -120,6 +120,31 @@ def register():
     
     return render_template('register.html')
 
+@app.route('/api/change-password', methods=['POST'])
+def change_password():
+    # Support Token
+    user_id = None
+    if 'user_id' in session:
+        user_id = session['user_id']
+    elif 'Authorization' in request.headers:
+        user_id = request.headers.get('Authorization').replace('Bearer ', '')
+    
+    if not user_id:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+        
+    data = request.get_json()
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    if not old_password or not new_password:
+        return jsonify({"success": False, "error": "Thiếu thông tin mật khẩu"}), 400
+        
+    success, message = db_manager.change_password(user_id, old_password, new_password)
+    if success:
+        return jsonify({"success": True, "message": message}), 200
+    else:
+        return jsonify({"success": False, "error": message}), 400
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
